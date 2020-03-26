@@ -186,18 +186,20 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     @SuppressLint({"MissingPermission", "NewApi"})
     private void changeCamera(){
-        try {
-            //先关闭之前的摄像头
-            if(mCameraDevice!=null) {
-                mCameraDevice.close();
-                mCameraDevice = null;
-            }
-            mCameraID^=1;
-            mCameraManager.openCamera(mCameraID+"", stateCallback, mainHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+        int a = 1;
     }
+//        try {
+//            //先关闭之前的摄像头
+//            if(mCameraDevice!=null) {
+//                mCameraDevice.close();
+//                mCameraDevice = null;
+//            }
+//            mCameraID^=1;
+//            mCameraManager.openCamera(mCameraID+"", stateCallback, mainHandler);
+//        } catch (CameraAccessException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
     @SuppressLint("NewApi")
@@ -209,7 +211,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         childHandler = new Handler(handlerThread.getLooper());
         mainHandler = new Handler(getMainLooper());
 
-
+//        mCameraID = BACK_CAMERA;//后摄像头
         mCameraID = BACK_CAMERA;//后摄像头
         Log.d(TAG, "initCamera2: "+ CameraCharacteristics.LENS_FACING_BACK);
         mImageReader = ImageReader.newInstance(1080, 1920, ImageFormat.JPEG,1);
@@ -241,11 +243,14 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         }, mainHandler);
         //获取摄像头管理
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+//        mCameraManager.openCamera(mCameraID+"", stateCallback, mainHandler);
+
+
 
         try {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
+//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+//                return;
+//            }
 
             //打开摄像头
             mCameraManager.openCamera(mCameraID+"", stateCallback, mainHandler);
