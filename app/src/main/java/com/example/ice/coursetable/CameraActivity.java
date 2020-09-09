@@ -176,7 +176,7 @@ public class CameraActivity extends AppCompatActivity {
                 CameraCharacteristics cameraCharacteristics =
                         mCameraManager.getCameraCharacteristics(cameraIds[i]);
                 if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
-                        == CameraMetadata.LENS_FACING_BACK) {
+                        == CameraMetadata.LENS_FACING_FRONT) {
                     mCameraID = cameraIds[i];
                 }
             }
