@@ -1,4 +1,4 @@
-package com.example.ice.coursetable;
+package com.example.ice.coursetable.activity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,13 +6,20 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Objects;
+
+import com.baidu.duer.bot.BotMessageProtocol;
+import com.baidu.duer.botsdk.BotIntent;
+import com.baidu.duer.botsdk.BotSdk;
+import com.example.ice.coursetable.R;
+import com.example.ice.coursetable.botsdk.BotMessageListener;
+import com.example.ice.coursetable.botsdk.IBotIntentCallback;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,7 +34,6 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.media.Image;
 import android.media.ImageReader;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,7 +42,6 @@ import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseIntArray;
@@ -45,12 +50,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity implements IBotIntentCallback {
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final String TAG = "CameraActivity";
+    // 初始状态，默认Camera可用
+    private static BotMessageProtocol.DuerOSCapacityState preState =
+            BotMessageProtocol.DuerOSCapacityState.ENABLED;
 
     ///为了使照片竖直显示
     static {
@@ -78,6 +85,7 @@ public class CameraActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
         setContentView(R.layout.activity_camera);
+        BotMessageListener.getInstance().addCallback(this);
 
         initView();
     }
@@ -346,5 +354,40 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void handleIntent(BotIntent intent, String customData) {
+        Log.i(TAG, "intent is:" + intent + "customData:" + customData);
+        if (intent != null && BotMessageProtocol.DUER_CAMERA_STATE_CHANGED_INTENT_NAME.equals(intent.name)) {
+            if (BotMessageProtocol.DuerOSCapacityState.ENABLED.name().equals(customData)) {
+                if (preState == BotMessageProtocol.DuerOSCapacityState.DISABLED) {
+                    // 摄像头从不可用变为可用,重新初始化相机
+                    preState = BotMessageProtocol.DuerOSCapacityState.ENABLED;
+                    initCamera2();
+                }
+                Toast.makeText(this, "摄像头可用", Toast.LENGTH_LONG).show();
+            } else if (BotMessageProtocol.DuerOSCapacityState.DISABLED.name().equals(customData)){
+                // TODO release camera
+                Toast.makeText(this, "摄像头不可用", Toast.LENGTH_LONG).show();
+                preState = BotMessageProtocol.DuerOSCapacityState.DISABLED;
+                BotSdk.getInstance().triggerDuerOSCapacity(BotMessageProtocol.DuerOSCapacity.AI_DUER_SHOW_REQUEST_ENABLE_CAMERA, null);
+                BotSdk.getInstance().triggerDuerOSCapacity(BotMessageProtocol.DuerOSCapacity.AI_DUER_SHOW_REQUEST_ENABLE_CAMERA, null);
+            }
+        }
+    }
 
+    @Override
+    public void onClickLink(String url, HashMap<String, String> paramMap) {
+
+    }
+
+    @Override
+    public void onHandleScreenNavigatorEvent(int event) {
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        BotMessageListener.getInstance().removeCallback(this);
+        super.onDestroy();
+    }
 }
